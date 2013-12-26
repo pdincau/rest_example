@@ -4,6 +4,7 @@
 -export([init/3]).
 -export([allowed_methods/2]).
 -export([content_types_accepted/2]).
+-export([resource_exists/2]).
 
 %% Custom callbacks.
 -export([handle_upload_stream/2]).
@@ -20,6 +21,9 @@ content_types_accepted(Req, State) ->
     {[
             {{<<"image">>, <<"png">>, []}, handle_upload_stream}
     ], Req, State}.
+
+resource_exists(Req, State) ->
+     {false, Req, State}.
 
 handle_upload_stream(Req, State) ->
     {Data, Req2} = acc_multipart(Req),
