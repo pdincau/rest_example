@@ -1,0 +1,15 @@
+%% Feel free to use, reuse and abuse the code in this file.
+
+{application, rest_example, [
+	{description, "Cowboy REST example."},
+	{vsn, "1"},
+	{modules, []},
+	{registered, [rest_example_sup]},
+	{applications, [
+		kernel,
+		stdlib,
+		cowboy
+	]},
+	{mod, {rest_example_app, []}},
+	{env, [{destination_dir, "/tmp"}]}
+]}.
