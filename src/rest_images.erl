@@ -3,12 +3,14 @@
 %% Standard callbacks.
 -export([init/3]).
 -export([allowed_methods/2]).
+-export([content_types_provided/2]).
 -export([content_types_accepted/2]).
 -export([resource_exists/2]).
 
 %% Custom callbacks.
 -export([handle_upload_png/2,
-         handle_upload_jpg/2]).
+         handle_upload_jpg/2,
+         provide_resource/2]).
 
 -define(APPLICATION, rest_example).
 
@@ -16,12 +18,18 @@ init(_Transport, _Req, []) ->
     {upgrade, protocol, cowboy_rest}.
 
 allowed_methods(Req, State) ->
-    {[<<"PUT">>, <<"POST">>], Req, State}.
+    {[<<"GET">>, <<"PUT">>, <<"POST">>], Req, State}.
 
 content_types_accepted(Req, State) ->
     {[
             {{<<"image">>, <<"png">>, []}, handle_upload_png},
             {{<<"image">>, <<"jpg">>, []}, handle_upload_jpg}
+    ], Req, State}.
+
+content_types_provided(Req, State) ->
+    {[
+            {{<<"image">>, <<"jpg">>, []}, provide_resource},
+            {{<<"image">>, <<"png">>, []}, provide_resource}
     ], Req, State}.
 
 resource_exists(Req, State) ->
@@ -31,11 +39,16 @@ resource_exists(Req, State) ->
         {Id, Req2} ->
             case valid_resource(Id) of
                 false ->
-                    {false, Req2, State};
+                    {false, Req2, Id};
                 true ->
-                    {true, Req2, State}
+                    {true, Req2, Id}
             end
     end.
+
+provide_resource(Req, Id) ->
+    FilePath = new_file_path(binary_to_integer(Id)),
+    Body = read_file(full_path(FilePath)),
+    {Body, Req, Id}.
 
 handle_upload_png(Req, State) ->
     handle_upload(Req, State, "image/png").
@@ -73,6 +86,10 @@ new_file_path(Id) ->
     Dir2 = string:substr(PathMd5, 11, 10),
     File = string:substr(PathMd5, 21, 12),
     lists:flatten([Dir1, "/", Dir2, "/", File]).
+
+read_file(FullPathFile) ->
+    {ok, Binary} = file:read_file(FullPathFile),
+    Binary.
 
 write_file(FullPathFile, Content) ->
     ok = filelib:ensure_dir(FullPathFile),
