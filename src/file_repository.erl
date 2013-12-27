@@ -15,11 +15,11 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
         terminate/2, code_change/3]).
 
--export([store/0]).
+-export([find/1, store/1]).
 
 -define(SERVER, ?MODULE).
 
--record(state, {index=0}).
+-record(state, {index, files}).
 
 %%%===================================================================
 %%% API
@@ -51,7 +51,7 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    {ok, #state{index=0}}.
+    {ok, #state{index=0, files=[]}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -68,10 +68,14 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 
-handle_call(store, _From, #state{index=Index} = State) ->
-    Reply = Index+1,
-    NewState = State#state{index=Index+1},
-    {reply, Reply, NewState};
+handle_call({store, ContentType}, _From, #state{index=Index, files=Files} = State) ->
+    ResourceIndex = Index+1,
+    NewState = State#state{index=ResourceIndex, files=[{ResourceIndex, ContentType}|Files]},
+    {reply, ResourceIndex, NewState};
+
+handle_call({find, Index}, _From, #state{files=Files} = State) ->
+    Reply = proplists:get_value(Index, Files),
+    {reply, Reply, State};
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
@@ -131,6 +135,8 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-store() ->
-    Index = gen_server:call(?SERVER, store),
-    Index.
+store(ContentType) ->
+    gen_server:call(?SERVER, {store, ContentType}).
+
+find(Index) ->
+    gen_server:call(?SERVER, {find, Index}).
