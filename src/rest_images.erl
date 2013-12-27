@@ -57,7 +57,7 @@ handle_upload_jpg(Req, State) ->
     handle_upload(Req, State, "image/jpg").
 
 handle_upload(Req, State, ContentType) ->
-    {Data, Req2} = acc_multipart(Req),
+    {Data, Req2} = acc_body(Req),
     FilePath = new_file_path(file_repository:store(ContentType)),
     write_file(full_path(FilePath), Data),
     {true, Req2, State}.
@@ -72,7 +72,7 @@ valid_resource(Id) ->
             true
     end.
 
-acc_multipart(Req) ->
+acc_body(Req) ->
     {ok, Body, Req2} = cowboy_req:body(Req),
     {Body, Req2}.
 
