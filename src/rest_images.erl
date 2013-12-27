@@ -7,7 +7,7 @@
 -export([resource_exists/2]).
 
 %% Custom callbacks.
--export([handle_upload_stream/2]).
+-export([handle_upload_png/2]).
 
 -define(APPLICATION, rest_example).
 
@@ -19,15 +19,25 @@ allowed_methods(Req, State) ->
 
 content_types_accepted(Req, State) ->
     {[
-            {{<<"image">>, <<"png">>, []}, handle_upload_stream}
+            {{<<"image">>, <<"png">>, []}, handle_upload_png}
     ], Req, State}.
 
 resource_exists(Req, State) ->
-     {false, Req, State}.
+    case cowboy_req:binding(image_id, Req) of
+        {undefined, Req2} ->
+            {false, Req2, State};
+        {ResourceId, Req2} ->
+            case file_repository:find(binary_to_integer(ResourceId)) of
+                undefined ->
+                    {false, Req2, State};
+                _ ->
+                    {true, Req2, State}
+            end
+    end.
 
-handle_upload_stream(Req, State) ->
+handle_upload_png(Req, State) ->
     {Data, Req2} = acc_multipart(Req),
-    FilePath = new_file_path(file_repository:store()),
+    FilePath = new_file_path(file_repository:store("image/png")),
     write_file(full_path(FilePath), Data),
     {true, Req2, State}.
 
