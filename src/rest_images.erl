@@ -26,11 +26,11 @@ resource_exists(Req, State) ->
     case cowboy_req:binding(image_id, Req) of
         {undefined, Req2} ->
             {false, Req2, State};
-        {ResourceId, Req2} ->
-            case file_repository:find(binary_to_integer(ResourceId)) of
-                undefined ->
+        {Id, Req2} ->
+            case valid_resource(Id) of
+                false ->
                     {false, Req2, State};
-                _ ->
+                true ->
                     {true, Req2, State}
             end
     end.
@@ -42,6 +42,14 @@ handle_upload_png(Req, State) ->
     {true, Req2, State}.
 
 % Private
+
+valid_resource(Id) ->
+    case file_repository:find(binary_to_integer(Id)) of
+        undefined ->
+            false;
+        _ ->
+            true
+    end.
 
 acc_multipart(Req) ->
     {ok, Body, Req2} = cowboy_req:body(Req),
