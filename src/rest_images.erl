@@ -58,11 +58,23 @@ handle_upload_jpg(Req, State) ->
 
 handle_upload(Req, State, ContentType) ->
     {Data, Req2} = acc_body(Req),
-    FilePath = new_file_path(file_repository:store(ContentType)),
+    Id = file_repository:store(ContentType),
+    FilePath = new_file_path(Id),
     write_file(full_path(FilePath), Data),
-    {true, Req2, State}.
+    case cowboy_req:method(Req2) of
+        {<<"POST">>, Req3} ->
+            ResourceUrl = resource_url(Req3, Id),
+            {{true, ResourceUrl}, Req3, State};
+        {<<"PUT">>, Req3} ->
+            {true, Req3, State}
+    end.
 
 % Private
+
+resource_url(_Req, Id) ->
+    %% TODO: extract url and path here
+    BinaryId = integer_to_binary(Id),
+    <<$/, BinaryId/binary>>.
 
 valid_resource(Id) ->
     case file_repository:find(binary_to_integer(Id)) of
