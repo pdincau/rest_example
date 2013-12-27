@@ -7,7 +7,8 @@
 -export([resource_exists/2]).
 
 %% Custom callbacks.
--export([handle_upload_png/2]).
+-export([handle_upload_png/2,
+         handle_upload_jpg/2]).
 
 -define(APPLICATION, rest_example).
 
@@ -19,7 +20,8 @@ allowed_methods(Req, State) ->
 
 content_types_accepted(Req, State) ->
     {[
-            {{<<"image">>, <<"png">>, []}, handle_upload_png}
+            {{<<"image">>, <<"png">>, []}, handle_upload_png},
+            {{<<"image">>, <<"jpg">>, []}, handle_upload_jpg}
     ], Req, State}.
 
 resource_exists(Req, State) ->
@@ -36,8 +38,14 @@ resource_exists(Req, State) ->
     end.
 
 handle_upload_png(Req, State) ->
+    handle_upload(Req, State, "image/png").
+
+handle_upload_jpg(Req, State) ->
+    handle_upload(Req, State, "image/jpg").
+
+handle_upload(Req, State, ContentType) ->
     {Data, Req2} = acc_multipart(Req),
-    FilePath = new_file_path(file_repository:store("image/png")),
+    FilePath = new_file_path(file_repository:store(ContentType)),
     write_file(full_path(FilePath), Data),
     {true, Req2, State}.
 
