@@ -1,4 +1,4 @@
 #!/bin/sh
 
-curl -v -H "content-type: image/jpg" --upload-file erlang http://localhost:8080/images
+curl -v -X POST -H "content-type: image/jpg" --upload-file erlang http://localhost:8080/images
 

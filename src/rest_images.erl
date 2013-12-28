@@ -18,7 +18,7 @@ init(_Transport, _Req, []) ->
     {upgrade, protocol, cowboy_rest}.
 
 allowed_methods(Req, State) ->
-    {[<<"GET">>, <<"PUT">>, <<"POST">>], Req, State}.
+    {[<<"GET">>, <<"POST">>], Req, State}.
 
 content_types_accepted(Req, State) ->
     {[
@@ -61,13 +61,8 @@ handle_upload(Req, State, ContentType) ->
     Id = file_repository:store(ContentType),
     FilePath = new_file_path(Id),
     write_file(full_path(FilePath), Data),
-    case cowboy_req:method(Req2) of
-        {<<"POST">>, Req3} ->
-            ResourceUrl = resource_url(Req3, Id),
-            {{true, ResourceUrl}, Req3, State};
-        {<<"PUT">>, Req3} ->
-            {true, Req3, State}
-    end.
+    ResourceUrl = resource_url(Req2, Id),
+    {{true, ResourceUrl}, Req2, State}.
 
 % Private
 
