@@ -3,6 +3,7 @@
 %% Standard callbacks.
 -export([init/3]).
 -export([allowed_methods/2]).
+-export([is_authorized/2]).
 -export([content_types_provided/2]).
 -export([content_types_accepted/2]).
 -export([resource_exists/2]).
@@ -19,6 +20,14 @@ init(_Transport, _Req, []) ->
 
 allowed_methods(Req, State) ->
     {[<<"GET">>, <<"POST">>], Req, State}.
+
+is_authorized(Req, State) ->
+    case cowboy_req:qs_val(<<"user_token">>, Req) of
+        {<<"myusertoken">>, Req2} ->
+            {true, Req2, State};
+        {_, Req2} ->
+        {{false, <<"">>}, Req2, State}
+    end.
 
 content_types_accepted(Req, State) ->
     {[
