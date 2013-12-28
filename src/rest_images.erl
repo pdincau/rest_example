@@ -7,6 +7,7 @@
 -export([content_types_provided/2]).
 -export([content_types_accepted/2]).
 -export([resource_exists/2]).
+-export([delete_resource/2]).
 
 %% Custom callbacks.
 -export([handle_upload_png/2,
@@ -19,7 +20,7 @@ init(_Transport, _Req, []) ->
     {upgrade, protocol, cowboy_rest}.
 
 allowed_methods(Req, State) ->
-    {[<<"GET">>, <<"POST">>], Req, State}.
+    {[<<"GET">>, <<"POST">>, <<"DELETE">>], Req, State}.
 
 is_authorized(Req, State) ->
     case cowboy_req:qs_val(<<"user_token">>, Req) of
@@ -58,6 +59,13 @@ provide_resource(Req, Id) ->
     FilePath = new_file_path(binary_to_integer(Id)),
     Body = read_file(full_path(FilePath)),
     {Body, Req, Id}.
+
+delete_resource(Req, Id) ->
+    {Id, Req2} = cowboy_req:binding(image_id, Req),
+    ok = file_repository:delete(binary_to_integer(Id)),
+    FilePath = new_file_path(binary_to_integer(Id)),
+    delete_file(full_path(FilePath)),
+    {true, Req2, Id}.
 
 handle_upload_png(Req, State) ->
     handle_upload(Req, State, "image/png").
@@ -106,6 +114,9 @@ new_file_path(Id) ->
 read_file(FullPathFile) ->
     {ok, Binary} = file:read_file(FullPathFile),
     Binary.
+
+delete_file(FullPathFile) ->
+    ok = file:delete(FullPathFile).
 
 write_file(FullPathFile, Content) ->
     ok = filelib:ensure_dir(FullPathFile),

@@ -15,7 +15,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
         terminate/2, code_change/3]).
 
--export([find/1, store/1]).
+-export([find/1, store/1, delete/1]).
 
 -define(SERVER, ?MODULE).
 
@@ -24,6 +24,14 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+store(ContentType) ->
+    gen_server:call(?SERVER, {store, ContentType}).
+
+find(Index) ->
+    gen_server:call(?SERVER, {find, Index}).
+
+delete(Index) ->
+    gen_server:call(?SERVER, {delete, Index}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -76,6 +84,11 @@ handle_call({store, ContentType}, _From, #state{index=Index, files=Files} = Stat
 handle_call({find, Index}, _From, #state{files=Files} = State) ->
     Reply = proplists:get_value(Index, Files),
     {reply, Reply, State};
+
+handle_call({delete, Index}, _From, #state{files=Files} = State) ->
+    NewFiles = proplists:delete(Index, Files),
+    NewState = State#state{files=NewFiles},
+    {reply, ok, NewState};
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
@@ -135,8 +148,3 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-store(ContentType) ->
-    gen_server:call(?SERVER, {store, ContentType}).
-
-find(Index) ->
-    gen_server:call(?SERVER, {find, Index}).
