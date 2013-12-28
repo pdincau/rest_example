@@ -23,11 +23,12 @@ allowed_methods(Req, State) ->
     {[<<"GET">>, <<"POST">>, <<"DELETE">>], Req, State}.
 
 is_authorized(Req, State) ->
-    case cowboy_req:qs_val(<<"user_token">>, Req) of
-        {<<"myusertoken">>, Req2} ->
+    {AuthToken, Req2} = cowboy_req:qs_val(<<"user_token">>, Req),
+    case auth_service:is_authorized(AuthToken) of
+        true ->
             {true, Req2, State};
-        {_, Req2} ->
-        {{false, <<"">>}, Req2, State}
+        false ->
+            {{false, <<"">>}, Req2, State}
     end.
 
 content_types_accepted(Req, State) ->
