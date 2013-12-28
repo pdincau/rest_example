@@ -61,11 +61,10 @@ provide_resource(Req, Id) ->
     {Body, Req, Id}.
 
 delete_resource(Req, Id) ->
-    {Id, Req2} = cowboy_req:binding(image_id, Req),
     ok = file_repository:delete(binary_to_integer(Id)),
     FilePath = new_file_path(binary_to_integer(Id)),
     delete_file(full_path(FilePath)),
-    {true, Req2, Id}.
+    {true, Req, Id}.
 
 handle_upload_png(Req, State) ->
     handle_upload(Req, State, "image/png").
