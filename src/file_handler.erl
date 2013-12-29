@@ -21,11 +21,10 @@ write_file(Id, Content) ->
     ok = filelib:ensure_dir(FilePath),
     ok = file:write_file(FilePath, Content).
 
-%% Internal
+%% Private
 generate_full_file_path(Id) ->
     LocalFilePath = generate_local_file_path(Id),
-    {ok, Dir} = application:get_env(destination_dir),
-    %{ok, Dir} = application:get_env(?APPLICATION, destination_dir),
+    {ok, Dir} = application:get_env(?APPLICATION, destination_dir),
     filename:join([Dir, LocalFilePath]).
 
 generate_local_file_path(Id) ->
