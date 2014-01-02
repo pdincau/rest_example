@@ -11,7 +11,7 @@
 %% ct.
 
 all() ->
-	[eunit].
+    [eunit].
 
 eunit(_) ->
     ok = eunit:test({application, rest_example}).
