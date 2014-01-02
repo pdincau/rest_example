@@ -4,4 +4,5 @@ deps/*
 tmp/*
 _rel/*
 ebin/*
+test/*.beam
 .erlang.mk.packages.v1
