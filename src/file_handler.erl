@@ -33,4 +33,3 @@ generate_local_file_path(Id) ->
     Dir2 = string:substr(PathMd5, 11, 10),
     File = string:substr(PathMd5, 21, 12),
     lists:flatten([Dir1, "/", Dir2, "/", File]).
-
