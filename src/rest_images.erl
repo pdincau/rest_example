@@ -55,12 +55,14 @@ resource_exists(Req, State) ->
     end.
 
 provide_resource(Req, Id) ->
-    Body = file_handler:read_file(Id),
+    FilePath = file_handler:file_path(Id),
+    Body = file_handler:read_file(FilePath),
     {Body, Req, Id}.
 
 delete_resource(Req, Id) ->
     ok = file_repository:delete(Id),
-    file_handler:delete_file(Id),
+    FilePath = file_handler:file_path(Id),
+    file_handler:delete_file(FilePath),
     {true, Req, Id}.
 
 handle_upload_png(Req, State) ->
@@ -70,16 +72,21 @@ handle_upload_jpg(Req, State) ->
     handle_upload(Req, State, "image/jpg").
 
 handle_upload(Req, State, ContentType) ->
-    {Data, Req2} = acc_body(Req),
     Id = file_repository:store(ContentType),
-    file_handler:write_file(Id, Data),
-    ResourceUrl = resource_url(Req2, Id),
-    {{true, ResourceUrl}, Req2, State}.
+    FilePath = file_handler:file_path(Id),
+    case process_body(Req, FilePath) of
+        {ok, Req2} ->
+            ResourceUrl = resource_url(Req2, Id),
+            {{true, ResourceUrl}, Req2, State};
+        {error, _Reason} ->
+            file_repository:delete(Id),
+            %%TODO fix this in order to return correct status
+            {false, Req, State}
+    end.
 
 % Private
 
 resource_url(_Req, Id) ->
-    %% TODO: extract url and path here
     BinaryId = integer_to_binary(Id),
     <<$/, BinaryId/binary>>.
 
@@ -91,6 +98,13 @@ valid_resource(Id) ->
             true
     end.
 
-acc_body(Req) ->
-    {ok, Body, Req2} = cowboy_req:body(Req),
-    {Body, Req2}.
+process_body(Req, FilePath) ->
+    case cowboy_req:stream_body(Req) of
+        {ok, Data, Req2} ->
+            file_handler:write_file(FilePath, Data),
+            process_body(Req2, FilePath);
+        {done, Req2} ->
+            {ok, Req2};
+        {error, Reason} ->
+            {error, Reason}
+    end.
