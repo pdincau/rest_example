@@ -80,8 +80,8 @@ handle_upload(Req, State, ContentType) ->
             {{true, ResourceUrl}, Req2, State};
         {error, _Reason} ->
             file_repository:delete(Id),
-            %%TODO fix this in order to return correct status
-            {false, Req, State}
+            {ok, Req2} = cowboy_req:reply(500, Req),
+            {halt, Req2, State}
     end.
 
 % Private
