@@ -106,5 +106,6 @@ process_body(Req, FilePath) ->
         {done, Req2} ->
             {ok, Req2};
         {error, Reason} ->
+            file_handler:delete_file(FilePath),
             {error, Reason}
     end.
