@@ -71,6 +71,8 @@ handle_upload_png(Req, State) ->
 handle_upload_jpg(Req, State) ->
     handle_upload(Req, State, "image/jpg").
 
+% Private
+
 handle_upload(Req, State, ContentType) ->
     Id = file_repository:store(ContentType),
     FilePath = file_handler:file_path(Id),
@@ -83,8 +85,6 @@ handle_upload(Req, State, ContentType) ->
             {ok, Req2} = cowboy_req:reply(500, Req),
             {halt, Req2, State}
     end.
-
-% Private
 
 resource_url(_Req, Id) ->
     BinaryId = integer_to_binary(Id),
