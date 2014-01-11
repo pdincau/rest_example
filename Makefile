@@ -3,7 +3,7 @@ PROJECT = rest_example
 CT_SUITES = eunit http
 
 DEPS = cowboy
-dep_cowboy = pkg://cowboy 0.9.0
+dep_cowboy = pkg://cowboy master
 
 include ./erlang.mk
 
